@@ -1,1 +1,4 @@
-# Sisop-2-2025-IT26
+# Soal Shift Modul 2 Sisop
+
+Anggota Kelompok
+Azaria Raissa Maulidinnisa
