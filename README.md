@@ -47,7 +47,7 @@ Fungsi ```run_command``` yang dipanggil di dalam fungsi main. ```if (argc == 1)`
 ### Struktur directory setelah download
 ![shift2_hasil tree](https://github.com/user-attachments/assets/32528273-688c-49df-86f2-dc879b214a4d)
 
-### 1b. Filter
+### 1b. Filter files
 ```
 if(argc == 3 && strcmp(argv[1], "-m") == 0 && strcmp(argv[2], "Filter") == 0) {
         char *filtered_dir = "Filtered";
@@ -183,10 +183,85 @@ int i = 0, j = 0;
 Indeks ```i``` dan ```j``` digunakan untuk melacak posisi dalam array. Program akan terus berlanjut selama masih ada file yang tersisa. Pada setiap iterasi, jika masih ada file angka ```I < num_count```, maka nama file akan digabungkan dengan path folder, kemudian dibuka dan dibaca isinya kemudian ditulis ke dalam ```Combined.txt```. Setelahnya file akan ditutup dan dihapus. Setelah proses selesai, file output ditutup dan semua memori yang dialokasikan dengan ```strdup()``` dibebaskan. Proses ini memastikan penggabungan dilakukan sesuai urutan yang diminta sekaligus membersihkan file sumber setelah isinya dipindahkan.
 
 ### Struktur directory setelah combine
+![shift2_combine tree](https://github.com/user-attachments/assets/809e375f-bf6a-4a42-89bc-15f2289f5079)
 
+### Hasil combine
+![shift2_cat combine](https://github.com/user-attachments/assets/3857ca49-67ff-4dcf-9abd-f82b08988273)
 
+### 1d. Decode dengan rot13
+```
+char rot13_char(char c) {
+    if('a' <= c && c <= 'z') return 'a' + (c - 'a' + 13) % 26;
+    else if('A' <= c && c <= 'Z') return 'A' + (c - 'A' + 13) % 26;
+    else return c;
+}
+```
+Fungsi ```rot13_char``` digunakan untuk mengenskripsi atau mendeskripsi satu karakter dengan algoritma ROT13, yaitu metode substitusi huruf dengan menggantinya 13 posisi setelahnya dalam alfabet. Jika ```c ``` bukan huruf, maka karakter akan dikembalikan apa adanya tanpa perubahan. 
+```
+void decode_rot13( const char *input_file, const char *output_file) {
+    FILE *in = fopen(input_file, "r");
+    if(!in) {
+        perror("Failed to open Combined.txt");
+        return;
+    }
 
+    FILE *out = fopen(output_file, "w");
+    if(!out) {
+        perror("Failed to create Decoded.txt");
+        fclose(in);
+        return;
+    }
 
+```
+Fungsi ```decode_rot13``` akan membuka file teks hasil gabungan ```Combined.txt```, lalu mendeskripsi isinya menggunakan algoritma ROT13 dan menyimpan ke file baru ```Decoded.txt```. Fungsi akan membuka file input ```input_file``` dengan mode baca. jika fungsi gagal membuka file input, maka pesan eror akan ditampilkan. Selanjutnya, fungsi akan membuka file output ```output_file``` dengan mode tulis. Jika gagal, fungsi akan menampilakn pesan dan menutup file input yang sudah terbuka agar tidak terjadi kebocoran memori. Proses deskripsi dilakukan setelah kedua file berhasil dibuka. 
+```
+char ch;
+    while ((ch = fgetc(in)) != EOF) {
+        fputc(rot13_char(ch), out);
+    }
+
+    fclose(in);
+    fclose(out);
+}
+```
+Fungsi melakukan proses deskripsi isi file. Variable ```ch``` digunakan untuk membaca setiap karakter dari file input. Setiap karakter yang dibaca kemudian diterjemahkan menggunakan fungsi ```rot13_char```, lalu hasilnya ditulis ke file output. Proses berlangsung hingga seluruh isi file selesai dibaca. 
+
+### Struktur directory setelah decode
+![shift2_dr akhir](https://github.com/user-attachments/assets/81440ac9-e0d4-49d5-b867-3fcdbe3f44e4)
+
+### 1e.  Check password
+```
+void check_pass(const char *decoded_file) {
+    FILE *file = fopen(decoded_file, "r");
+    if (!file) {
+        perror("Failed to open Decoded.txt");
+        return; 
+    }
+
+    char pass[256];
+    fgets(pass, sizeof(pass), file);
+    fclose(file);
+
+    pass[strcspn(pass, "\n")] = 0;
+```
+Fungsi ```check_pass``` akan membaca password dari file ```Decoded.txt```.  Isi baris pertama file dibaca dengan ```fgets``` ke dalam array ```pass```. ```strcspn(pass, “\n”)``` untuk memastikan password tidak memiliki karakter new line di akhir, lalu diganti dengan karakter null sehingga string menjadi bersih. 
+```
+char input[256];
+    printf("Enter password: ");
+    fgets(input, sizeof(input), stdin);
+    input[strcspn(input, "\n")] = 0;
+
+    if (strcmp(pass, input) == 0) {
+        printf("Password correct!\n");
+    } else {
+        printf("Password incorrect!\n");
+    }
+}
+```
+Selanjutnya fungsi akan memverifikasi password  yang dimasukkan pengguna. Array dideklarasikan untuk menampung password yang dimasukkan. Kemudian fungsi ```fgets``` membaca input dari pengguna  dan ```input[strcspn(input, “\n”)``` untuk menghapus karakter new line. Fungsi ```srtcmp``` akan membandingkan password yang dibaca dari file ```pass``` dengan password yang diinput pengguna. Jika keduanya sama akan muncul pesan ```Password correct!``` dan jika tidak sama akan muncul pesan ```Password incorrect!```. Secara keseluruhan, fungsi digunakan untuk membandingkan password didalam file dengan password yang diinput dan menuliskan pesan hasil perbandingannya.
+
+### Check password
+![shift2_decode check](https://github.com/user-attachments/assets/ca958088-7ec9-4cee-8b32-b182e55ad130)
 
 ## Soal no 2
 
