@@ -277,7 +277,33 @@ Selanjutnya fungsi akan memverifikasi password  yang dimasukkan pengguna. Array 
 ![shift2_decode check](https://github.com/user-attachments/assets/ca958088-7ec9-4cee-8b32-b182e55ad130)
 
 ## Soal no 2
+### a
+sebelum menjalankan program, download file yang sudah diberikan dan unzip lalu menghapus file zi; asli
+`wget "https://drive.usercontent.google.com/u/0/uc?id=1_5GxIGfQr3mNKuavJbte_AoRkEQLXSKS&export=download" -O starter_kit.zip && unzip starter_kit.zip -d starter_kit && rm starter_kit.zip`
+<img src="https://github.com/user-attachments/assets/11042f39-f467-4161-b1fb-435b7f4c0ab8" width="400"/>
+ini adalah bentuk strukturnya setelah menjalankan command tersebut
 
+### b
+Membuat direktori karantina yang dapat mendecrypt nama file.
+`mkdir quarantine`
+file didecrypt dengan algoritma Base64
+```
+char *simple_base64_decode(const char *str) {
+    char command[512];
+    snprintf(command, sizeof(command), "echo %s | base64 -d", str);
+
+    FILE *fp = popen(command, "r");
+    if (fp == NULL) return NULL;
+
+    static char result[256];
+    fgets(result, sizeof(result), fp);
+    pclose(fp);
+    result[strcspn(result, "\n")] = '\0';
+
+    return strdup(result);
+}
+```
+ 
 ## Soal no 3
 
 ## Soal no 4
