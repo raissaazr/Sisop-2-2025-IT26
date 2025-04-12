@@ -14,6 +14,19 @@ int folder_exists(const char *folder) {
 ```
 Untuk mengecek ada tidaknya folder dan memastikan bahwa folder merupakan direktori.
 
+### 1.2 Menampilkan usage message 
+```
+void print_usage() {
+    printf("Usage:\n");
+    printf("  ./action             -> Download and extract Clues.zip (if not exists)\n");
+    printf("  ./action -m Filter   -> Filter clue files into 'Filtered/'\n");
+    printf("  ./action -m Combine  -> Combine filtered file contents\n");
+    printf("  ./action -m Decode   -> Decode Combined.txt using Rot13\n");
+    printf("  ./action -m Check    -> Input password and verify with Decoded.txt\n")
+}
+```
+Memberikan panduan kepada pengguna tentang cara menjalankan program dengan benar.
+
 ### 1a. Download the clues
 ```
 void run_command(char *argv[]) {
