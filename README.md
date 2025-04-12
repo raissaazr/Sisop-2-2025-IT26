@@ -5,6 +5,188 @@ Oscaryavat Viryavan 5027241053<br />
 Naufal Ardhana 5027241118<br />
 
 ## Soal no 1
+### 1.1 Mengecek folder ada atau tidak
+```
+int folder_exists(const char *folder) {
+    struct stat st;
+    return (stat(folder, &st) == 0 && S_ISDIR(st.st_mode));
+}
+```
+Untuk mengecek ada tidaknya folder dan memastikan bahwa folder merupakan direktori.
+
+### 1a. Download the clues
+```
+void run_command(char *argv[]) {
+    pid_t pid = fork();
+    if(pid == 0) {
+        execvp(argv[0], argv);
+        perror("exec failed.");
+        exit(EXIT_FAILURE);
+    } else if (pid > 0) {
+        wait(NULL);
+    } else {
+        perror("fork failed.");
+        exit(EXIT_FAILURE);
+    }
+}
+```
+Fungsi untuk menjalankan command yang diberikan dalam bentuk array ```argv[]```  menggunakan child process dan ```execvp()```. ```fork()``` membuat proses baru/child process. ```pid``` menyimpan return value. ```execvp(argv[0], argv)``` menggantikan proses anak dengan anak perintah yang ingin dijalankan. Jika proses gagal, akan muncul message error dan keluar dari proses dengan status gagal. ```else if(pid > 0) { wait(NULL)``` merupakan parent process yang akan dijalankan setelah menunggu child process selesai. ```else { perror(“fork failed.”); exit``` proses fork gagal dan keluar dari program. 
+
+```
+int main(int argc, char *argv[]) {
+    if (argc == 1) {
+        if (!folder_exists("Clues")) {
+            char *wget_args[] = {"wget", "https://drive.usercontent.google.com/u/0/uc?id=1xFn1OBJUuSdnApDseEczKhtNzyGekauK&export=download", "-O", "Clues.zip", NULL};
+            run_command(wget_args);
+```
+Fungsi ```run_command``` yang dipanggil di dalam fungsi main. ```if (argc == 1)``` Mengecek apakah program dijalankan tanpa argument tambahan, ```if (!folder_exists(“Clues”)``` Memeriksa apakah folder Clues ada atau tidak, jika tidak maka lanjut ke proses wget untuk mendownload Clues.zip.
+
+### Proses downloading clues
+![shift2_output download](https://github.com/user-attachments/assets/03fdc14c-4a29-4c45-9c5b-7dfc49f86b3a)
+
+### Struktur directory setelah download
+![shift2_hasil tree](https://github.com/user-attachments/assets/32528273-688c-49df-86f2-dc879b214a4d)
+
+### 1b. Filter
+```
+if(argc == 3 && strcmp(argv[1], "-m") == 0 && strcmp(argv[2], "Filter") == 0) {
+        char *filtered_dir = "Filtered";
+        mkdir(filtered_dir, 0755);
+```
+Memeriksa apakah argument yang diberikan sesuai, jika kondisi terpenuhi maka program akan mendeklarasi dan menginisialisasi variable ```filtered.dir``` dengan nama folder yang akan dibuat, yaitu ```Filtered```.
+
+```
+for(char c = 'A'; c <= 'D'; c++) {
+            char folder_path[PATH_MAX];
+            snprintf(folder_path, sizeof(folder_path), "Clues/Clue%c", c);
+            DIR *dir = opendir(folder_path);
+            if (!dir) continue;
+```
+Looping untuk memeriksa karakter ‘A’, ‘B’, ‘C’, ‘D’. Menginisialisasi variable ```c``` dengan karakter ```’A’```. Loop akan berlanjut selama nilai ```c````  kurang atau sama dengan ```‘D’```, dengan iterasi setiap nilai c bertambah.
+```char folder_path[PATH_MAX]``` mendeklarasikan array yang bertipe char dengan ukuran PATH_MAX.
+``` snprintf(folder_path, sizeof(folder_path), "Clues/Clue%c", c);```
+Menulis string ke dalam buffer ```folder_path``` dengan format string yang digunakan untuk membuat nama folder. ```DIR *dir = opendir(folder_path)``` fungsi untuk membuka direktori yang sudah ditentukan dan mengembalikan pointer ke tipe DIR. ```if (!dir) continue``` memeriksa apakah pointer bernilai dir atau NULL, jika direktori tidak ada tau gagal, maka program akan melanjutkan ke iterasi berikutnya. 
+
+```
+struct dirent *entry;
+            while ((entry = readdir(dir)) != NULL) {
+                if (entry->d_name[0] == '.') continue;
+```
+Mendeklarasikan pointer ke entri direktori. Loop selama masih ada file didalam dir yang diketahui dengan ```readdir``` dan melewati entri tersembunyi.
+```
+if (strlen(entry->d_name) == 5 && 
+                    isalnum(entry->d_name[0]) &&
+                    strcmp(entry->d_name + 1, ".txt") == 0) {
+
+                        char src[PATH_MAX], dest[PATH_MAX];
+                        snprintf(src, PATH_MAX, "%s/%s", folder_path, entry->d_name);
+                        snprintf(dest, PATH_MAX, "%s/%s", filtered_dir, entry->d_name);
+                        rename(src, dest);
+                    } else {
+                        char path[PATH_MAX];
+                        snprintf(path, PATH_MAX, "%s/%s", folder_path, entry->d_name);
+                        remove(path);
+                    }
+            }
+            closedir(dir);
+        }
+        return 0;
+    }
+```
+Memeriksa apakah nama file memiliki panjang 5 karakter, apakah karakter pertama huruf atau angka menggunakan ```isalnum()``` dan empat karakter terakhir adalah ```.txt```.  Jika syarat terpenuhi, file akan dipindahkan dan ke folder ```Filtered```. Jika tidak memenuhi syarat, file akan dihapus. Setelah seluruh isi folder dibaca dan difilter, folder akan ditutup dan proses selesai. Tujuan utama dari proses ini adalah menyisakan file petunjuk yang valid di dalam folder ```Filtered```.
+
+### Directory setelah filter
+![shift2_filtered](https://github.com/user-attachments/assets/80504e4b-3a82-41ff-abfd-eab62ff335f3)
+
+### 1c. Combine file content
+```
+int cmpstr(const void *a, const void *b) {
+    return strcmp(*(const char **)a, *(const char **)b);
+}
+```
+Fungsi ```cmpstr``` merupakan fungsi pembanding yang digunakan untuk mengurutkan array string dengan ```qsort```. Fungsi ini membandingkan dua pointer string dengan ```strcmp```, lalu mengembalikan hasil perbandingannya. 
+
+```
+void combine_files(const char *dir) {
+    DIR *folder = opendir(dir);
+    if(!folder) {
+        perror("Failed to open Filtered folder");
+        return;
+    }
+
+    struct dirent *entry;
+    char *number_files[500];
+    char *letter_files[500];
+    int num_count = 0, let_count = 0;
+
+    while((entry = readdir(folder)) != NULL) {
+        if(entry->d_name[0] == '.') continue;
+
+        if(isdigit(entry->d_name[0])) {
+            number_files[num_count++] = strdup(entry->d_name);
+        } else if (isalpha(entry->d_name[0])) {
+            letter_files[let_count++] = strdup(entry->d_name);
+        }
+    }
+    closedir(folder);
+
+```
+Fungsi combine akan membuka folder ```Filtered``` kemudian membaca semua file didalamnya dan memisahkannya menjadi dua kelompok, yang diawali angka dan diawali huruf. Deklarasi array ```number_files``` dan ```letter_files``` untuk menyimpan file secara terpisah, kemudian jumlah masing-masing akan disimpan dalam ```num_count``` dan ```let_count```. Dalam loop while, setiap entri akan diperiksa. Program akan melewati setiap file yang tersembunyi. Setelah selesai, direktori akan ditutup. 
+
+```
+ qsort(number_files, num_count, sizeof(char *), cmpstr);
+    qsort(letter_files, let_count, sizeof(char *), cmpstr);
+
+    FILE *out = fopen("Combined.txt", "w");
+    if(!out) {
+        perror("Failed to create Combined.txt");
+        return;
+    }
+```
+Fungsi ```qsort()``` untuk mengurutkan kedua array secara alfabetis menggunakan fungsi pembanding. Setelahnya file akan digabungkan dengan urutan yang benar. File output ```Combined.txt``` dibuka dengan mode ```w```, yang berarti akan membuat file baru. Jika gagal membuka, maka ```perror()``` akan menampilkan pesan eror dan menghentikan program.
+```
+int i = 0, j = 0;
+    while(i < num_count || j < let_count) {
+        if (i < num_count) {
+            char path[PATH_MAX];
+            snprintf(path, PATH_MAX, "%s/%s", dir, number_files[i]);
+            FILE *f = fopen(path, "r");
+            if(f) {
+                char ch;
+                while ((ch = fgetc(f)) != EOF)
+                fputc(ch, out);
+                fclose(f);
+                remove(path);
+            }
+            i++;
+        }
+        if (j < let_count) {
+            char path[PATH_MAX];
+            snprintf(path, PATH_MAX, "%s/%s", dir, letter_files[j]);
+            FILE *f = fopen(path, "r");
+            if (f) {
+                char ch;
+                while((ch = fgetc(f)) != EOF)
+                fputc(ch, out);
+                fclose(f);
+                remove(path);
+            }
+            j++;
+        }
+    }
+    fclose(out);
+    for(int k =0; k < num_count; k++) free(number_files[k]);
+    for(int k =0; k < let_count; k++) free(letter_files[k]);
+}
+
+```
+Indeks ```i``` dan ```j``` digunakan untuk melacak posisi dalam array. Program akan terus berlanjut selama masih ada file yang tersisa. Pada setiap iterasi, jika masih ada file angka ```I < num_count```, maka nama file akan digabungkan dengan path folder, kemudian dibuka dan dibaca isinya kemudian ditulis ke dalam ```Combined.txt```. Setelahnya file akan ditutup dan dihapus. Setelah proses selesai, file output ditutup dan semua memori yang dialokasikan dengan ```strdup()``` dibebaskan. Proses ini memastikan penggabungan dilakukan sesuai urutan yang diminta sekaligus membersihkan file sumber setelah isinya dipindahkan.
+
+### Struktur directory setelah combine
+
+
+
+
 
 ## Soal no 2
 
