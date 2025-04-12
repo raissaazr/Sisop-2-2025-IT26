@@ -280,8 +280,8 @@ Selanjutnya fungsi akan memverifikasi password  yang dimasukkan pengguna. Array 
 ### a
 sebelum menjalankan program, download file yang sudah diberikan dan unzip lalu menghapus file zi; asli
 `wget "https://drive.usercontent.google.com/u/0/uc?id=1_5GxIGfQr3mNKuavJbte_AoRkEQLXSKS&export=download" -O starter_kit.zip && unzip starter_kit.zip -d starter_kit && rm starter_kit.zip`
-<img src="https://github.com/user-attachments/assets/11042f39-f467-4161-b1fb-435b7f4c0ab8" width="400"/>
-ini adalah bentuk strukturnya setelah menjalankan command tersebut
+<img src="https://github.com/user-attachments/assets/11042f39-f467-4161-b1fb-435b7f4c0ab8" width="400"/> <br>
+ini adalah struktur direktori setelah menjalankan command tersebut
 
 ### b
 Membuat direktori karantina yang dapat mendecrypt nama file.
