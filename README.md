@@ -303,6 +303,9 @@ char *simple_base64_decode(const char *str) {
     return strdup(result);
 }
 ```
+### c
+ketika `./starterkit --quarantine`, semua file yang berada di `starter_kit` akan dipindah ke `quarantine`
+
  
 ## Soal no 3
 
