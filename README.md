@@ -303,10 +303,29 @@ char *simple_base64_decode(const char *str) {
     return strdup(result);
 }
 ```
+ketika decrypt, maka muncul file bernama `decryption.pid` yang berisikan informasi nomor pid <br><br>
+<img src= "https://github.com/user-attachments/assets/2edb0dca-015f-4526-a96b-c2030034c04f" width= "400"/><br><br>
+
+
 ### c
 ketika `./starterkit --quarantine`, semua file yang berada di `starter_kit` akan dipindah ke `quarantine`
+dan ketika di `quarantine`, sebagian nama file akan terdecrypt. <br> <br>
+<img src = "https://github.com/user-attachments/assets/7895ad09-78ee-45d6-8170-b473576a2eef" width ="400"/><br> <br> 
+perintah `./starterkit --return` adalah untuk mengembalikan seluruh file di `quarantine` kembali ke `starter_kit` <br><br>
+<img src = "https://github.com/user-attachments/assets/571ffb9c-f90d-4423-a010-80c2c8c6d37b" width ="400"/><br><br>
 
- 
+
+### d
+untuk menghapus semua file yang ada di `quarantine`,  gunakan perintah `./starterkit --eradicate` <br><br>
+<img src = "https://github.com/user-attachments/assets/498ffa3d-da77-4db9-823b-9fa9b4bcf8d1" width ="400"/><br><br>
+
+
+### e
+setelah mendecrypt, matikan prosesnya dengan melihat file decryption.pid, lalu ketik perintah `kill -9 "nomor pid"` atau dengan cara lain menggunakan `ps aux` lalu kill pidnya <br><br>
+<img src = "https://github.com/user-attachments/assets/5c72feee-2fcb-413f-bd55-b5a78fe1c4bb" width = "400"/><br><br>
+
+### f
+
 ## Soal no 3
 
 ## Soal no 4
