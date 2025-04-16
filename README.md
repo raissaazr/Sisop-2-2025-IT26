@@ -325,6 +325,32 @@ setelah mendecrypt, matikan prosesnya dengan melihat file decryption.pid, lalu k
 <img src = "https://github.com/user-attachments/assets/5c72feee-2fcb-413f-bd55-b5a78fe1c4bb" width = "400"/><br><br>
 
 ### f
+```
+if (argc != 2) {
+        printf("Usage:\n");
+        printf("  ./starterkit --decrypt\n");
+        printf("  ./starterkit --quarantine\n");
+        printf("  ./starterkit --return\n");
+        printf("  ./starterkit --eradicate\n");
+        printf("  ./starterkit --shutdown\n");
+        return 1;
+    }
+
+    if (strcmp(argv[1], "--decrypt") == 0) {
+        run_daemon();
+    } else if (strcmp(argv[1], "--quarantine") == 0) {
+        quarantine_files();
+    } else if (strcmp(argv[1], "--return") == 0) {
+        return_files();
+    } else if (strcmp(argv[1], "--eradicate") == 0) {
+        eradicate_files();
+    } else if (strcmp(argv[1], "--shutdown") == 0) {
+        shutdown_decrypt();
+    } else {
+        printf("Opsi tidak dikenali: %s\n", argv[1]);
+    }
+```
+ini adalah salah satu potongan kode di fungsi `main()` yang merupakan sebuah error handling yang mana ketika user memasukkan perintah yang tidak ada, maka menghasilkan output "opsi tidak dikenai"
 
 ## Soal no 3
 
