@@ -350,7 +350,7 @@ if (argc != 2) {
         printf("Opsi tidak dikenali: %s\n", argv[1]);
     }
 ```
-ini adalah salah satu potongan kode di fungsi `main()` yang merupakan sebuah error handling yang mana ketika user memasukkan perintah yang tidak ada, maka menghasilkan output "opsi tidak dikenai"
+ini adalah salah satu potongan kode di fungsi `main()` yang merupakan sebuah error handling yang mana ketika user memasukkan perintah yang tidak ada, maka menghasilkan output "opsi tidak dikenali"
 
 ## Soal no 3
 
