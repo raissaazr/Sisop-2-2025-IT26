@@ -482,6 +482,14 @@ void spread_trojan(const char *self_path) {
     closedir(dir);
 ```
 Fungsi `spread_trojan` menyalin file subdirektori dalam 1 user. Fungsi awalnya mendapat path direktori dari home user, kemudian membuka dan membaca entri didalamnya. Fungsi akan membuat salinan file yang sedang berjalan dengan nama copy_malware. Proses dilakukan awalnya membuka `self_path` kemudian membaca isinya di buffer, dan ditulis di `copy_malware`.
+### Output saat ./malware di run
+![image](https://github.com/user-attachments/assets/8c08fd90-45f3-47a4-9190-1d490a49a179)
+### Output saat kita melihat isi ps aux dan mengecek file /init
+![image](https://github.com/user-attachments/assets/23064bf8-dac8-4225-bce0-e1140aed7a9f)
+### Folder_in yang telah dienkripsi dan di zip melalui wannacryptor
+![image](https://github.com/user-attachments/assets/e3f2f136-6f9b-4264-9101-967d50faec70)
+### Output Spread Trojan ke subdirektori user
+![image](https://github.com/user-attachments/assets/ea2129c4-d4e1-40e1-bc8a-7c81e1340b4b)
 
 ## Soal no 4
 ```
