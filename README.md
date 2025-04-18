@@ -75,7 +75,7 @@ for(char c = 'A'; c <= 'D'; c++) {
             DIR *dir = opendir(folder_path);
             if (!dir) continue;
 ```
-Looping untuk memeriksa karakter ‘A’, ‘B’, ‘C’, ‘D’. Menginisialisasi variable ```c``` dengan karakter ```’A’```. Loop akan berlanjut selama nilai ```c````  kurang atau sama dengan ```‘D’```, dengan iterasi setiap nilai c bertambah.
+Looping untuk memeriksa karakter ‘A’, ‘B’, ‘C’, ‘D’. Menginisialisasi variable ```c``` dengan karakter ```’A’```. Loop akan berlanjut selama nilai ```c``` kurang atau sama dengan ```‘D’```, dengan iterasi setiap nilai c bertambah.
 ```char folder_path[PATH_MAX]``` mendeklarasikan array yang bertipe char dengan ukuran PATH_MAX.
 ``` snprintf(folder_path, sizeof(folder_path), "Clues/Clue%c", c);```
 Menulis string ke dalam buffer ```folder_path``` dengan format string yang digunakan untuk membuat nama folder. ```DIR *dir = opendir(folder_path)``` fungsi untuk membuka direktori yang sudah ditentukan dan mengembalikan pointer ke tipe DIR. ```if (!dir) continue``` memeriksa apakah pointer bernilai dir atau NULL, jika direktori tidak ada tau gagal, maka program akan melanjutkan ke iterasi berikutnya. 
