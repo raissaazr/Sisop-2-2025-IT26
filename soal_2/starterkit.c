@@ -8,9 +8,19 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <signal.h>  
+#include <ctype.h>
 
 #define STARTER_KIT_PATH "starter_kit"
 #define LOG_PATH "activity.log"
+
+int valid_base64(const char *str) {
+    while (*str) {
+        if (!(isalnum(*str) || *str == '+' || *str == '/' || *str == '='))
+            return 0;
+        str++;
+    }
+    return 1;
+}
 
 char *simple_base64_decode(const char *str) {
     char command[512];
@@ -80,7 +90,7 @@ void quarantine_files() {
 
     struct dirent *entry;
     while ((entry = readdir(dir)) != NULL) {
-        if (entry->d_name[0] == '.') continue;
+        if (entry->d_type == DT_REG) {
 
         char src_path[512], dst_path[512];
         snprintf(src_path, sizeof(src_path), "%s/%s", STARTER_KIT_PATH, entry->d_name);
@@ -92,7 +102,7 @@ void quarantine_files() {
             write_log(logmsg);
         }
     }
-
+  }
     closedir(dir);
 }
 
@@ -188,16 +198,43 @@ void run_daemon() {
     // Child jadi daemon
     umask(0);
     setsid();
-    chdir("/");
+    chdir(".");
 
     close(STDIN_FILENO);
     close(STDOUT_FILENO);
     close(STDERR_FILENO);
 
     while (1) {
-        decrypt_files();
-        sleep(10);
+        DIR *qdir = opendir("quarantine");
+        if (!qdir) {
+            sleep(5);
+            continue;
+        }
+
+        struct dirent *file;
+        while ((file = readdir(qdir)) != NULL) {
+            if (file->d_type == DT_REG && valid_base64(file->d_name)) {
+                char old[512], new[512];
+                snprintf(old, sizeof(old), "%s/%s", "quarantine", file->d_name);
+
+                char *decoded = simple_base64_decode(file->d_name);
+                if (decoded && strlen(decoded) && !strchr(decoded, '/')) {
+                    snprintf(new, sizeof(new), "%s/%s", "quarantine", decoded);
+                    if (rename(old, new) == 0) {
+                        char logmsg[512];
+                        snprintf(logmsg, sizeof(logmsg), "%s - Decrypted to %s.", file->d_name, decoded);
+                        write_log(logmsg);
+                    }
+                }
+                free(decoded);
+            }
+        }
+
+        closedir(qdir);
+        sleep(5);
     }
+
+
 }
 
 
@@ -227,8 +264,5 @@ int main(int argc, char *argv[]) {
     }
 
 
-    return 0;
+    return 0;
 }
-
-
-
